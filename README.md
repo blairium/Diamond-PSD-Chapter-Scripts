@@ -2,6 +2,12 @@
 
 NEXAFS scan parsing, energy calibration, and double-normalisation.
 
+Intended for NEXAFS `.asc` scans from the SXR beamline of the Australian
+Synchrotron — the default column layout (`DEFAULT_COLUMNS`), header size
+(`DEFAULT_HEADER_ROWS`), and calibration/background/step-normalisation
+energy windows below are all tuned to that beamline's output format and are
+not guaranteed to suit scans from other instruments.
+
 Implements the double-normalisation method described in Watts, Thomsen &
 Dastoor (2006), "Methods in carbon K-edge NEXAFS: Experiment and analysis",
 *J. Electron Spectrosc. Relat. Phenom.* 151, 105-120.
@@ -74,5 +80,56 @@ result = double_normalise(
     "photodiode.asc",
     background=BackgroundFit(fit_window_eV=(276.0, 280.0)),
     step_normalisation=StepNormalisation(window_eV=(310.0, 320.0)),
+)
+```
+
+## Overriding the default energy windows
+
+Every energy window used by calibration, background-fitting, and
+step-normalisation is a keyword argument on its config dataclass, with the
+value below as its default — pass only the fields you want to change:
+
+| Dataclass           | Field                | Default            | Meaning                                                        |
+| -------------------- | --------------------- | ------------------- | ---------------------------------------------------------------- |
+| `EnergyCalibration` | `reference_column`   | `"Reference Foil VF"` | Column whose peak marks the calibration feature                |
+| `EnergyCalibration` | `search_window_eV`   | `(283.0, 287.0)`    | Range searched for that peak                                   |
+| `EnergyCalibration` | `calibrated_energy_eV` | `285.0`            | True energy the peak is shifted to (graphite 1s -> pi*)         |
+| `BackgroundFit`     | `fit_window_eV`      | `(275.6, 280)`      | Pre-edge range used to fit the linear background                |
+| `BackgroundFit`     | `apply`              | `True`              | Whether the fitted background is subtracted                     |
+| `StepNormalisation` | `window_eV`          | `(313.0, 321.0)`    | Post-edge range used to measure the edge-jump step height       |
+| `StepNormalisation` | `reducer`            | `np.mean`           | Function reducing that window to a single step-height scalar    |
+
+For example, to fit the background over a different pre-edge range and
+measure the step over a different post-edge range:
+
+```python
+from diamond_desorption_experiment.parse_nexafs_v2 import (
+    BackgroundFit,
+    StepNormalisation,
+    double_normalise,
+)
+
+result = double_normalise(
+    "sample.asc",
+    "photodiode.asc",
+    background=BackgroundFit(fit_window_eV=(275.6, 278.9)),
+    step_normalisation=StepNormalisation(window_eV=(332.4, 338.5)),
+)
+```
+
+`sample_calibration` and `photodiode_calibration` on `double_normalise` take
+independent `EnergyCalibration` instances, since the sample and photodiode
+scans can need different search windows:
+
+```python
+from diamond_desorption_experiment.parse_nexafs_v2 import (
+    EnergyCalibration,
+    double_normalise,
+)
+
+result = double_normalise(
+    "sample.asc",
+    "photodiode.asc",
+    sample_calibration=EnergyCalibration(search_window_eV=(284.8, 288.8)),
 )
 ```

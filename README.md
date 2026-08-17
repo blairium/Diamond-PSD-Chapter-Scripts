@@ -1,4 +1,4 @@
-# parse_nexafs_v2
+# parse_nexafs
 
 NEXAFS scan parsing, energy calibration, and double-normalisation.
 

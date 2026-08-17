@@ -4,12 +4,6 @@ Implements the double-normalisation method described in:
 Watts, Thomsen & Dastoor (2006), "Methods in carbon K-edge NEXAFS:
 Experiment and analysis", J. Electron Spectrosc. Relat. Phenom. 151, 105-120.
 
-Compared to ``parse_nexafs.py``, this version replaces hardcoded indices
-and column-count-dependent branching with explicit, overridable
-configuration objects: the energy-calibration reference feature and search
-window, the pre-edge background-fit window, and the post-edge
-step-normalisation window are all specified in eV rather than as raw row
-indices, so they can be adjusted per sample without editing the code.
 """
 
 from __future__ import annotations
